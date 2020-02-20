@@ -1,0 +1,4 @@
+node_modules/
+
+privateInfo.json
+serviceAccountKey.json
