@@ -1,4 +1,3 @@
-const admin = require("firebase-admin");
 const express = require("express");
 
 const router = express.Router();
@@ -6,7 +5,7 @@ const router = express.Router();
 module.exports = db => {
   router.post("/", (req, res) => {
     db.collection("users")
-      .where("firstName", "==", "Minhh")
+      .where("firstName", "==", "Minh")
       .get()
       .then(snapshot => {
         res.send({

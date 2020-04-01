@@ -100,7 +100,27 @@ module.exports = db => {
               collection
                 .doc(result.id)
                 .update({ registered: true })
-                .then(() => res.send({ success: true }));
+                .then(() => {
+                  const {
+                    firstName,
+                    lastName,
+                    address,
+                    phoneNumber,
+                    role
+                  } = result.data();
+                  res.send({
+                    success: true,
+                    user: {
+                      id: result.id,
+                      firstName,
+                      lastName,
+                      ...(address ? { address } : null),
+                      ...(phoneNumber ? { phoneNumber } : null),
+                      emailAddress,
+                      role
+                    }
+                  });
+                });
             } else {
               res.send({ success: false, message: "Unable to verify user." });
             }
