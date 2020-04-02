@@ -1,4 +1,8 @@
 node_modules/
 
+routes/test.js
+
+*.rest
+
 privateInfo.json
 serviceAccountKey.json

@@ -1,5 +1,6 @@
 const express = require("express");
 const fs = require("fs");
+const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const _ = require("lodash");
 
@@ -11,6 +12,8 @@ module.exports = db => {
     res.set("Cache-Control", "public, max-age=300, s-maxage=600");
 
     console.log(req.body);
+
+    const privateInfo = JSON.parse(fs.readFileSync("./privateInfo.json"));
 
     const collection = db.collection("users");
 
@@ -108,6 +111,21 @@ module.exports = db => {
                     phoneNumber,
                     role
                   } = result.data();
+
+                  const accessToken = jwt.sign(
+                    JSON.stringify({ id: result.id, emailAddress }),
+                    privateInfo.access_token_secret
+                  );
+
+                  res.setHeader("Cache-Control", "private");
+
+                  // had to name cookie "__session" instead of "access_token" because of Firebase restriction
+                  // https://stackoverflow.com/questions/44929653/firebase-cloud-function-wont-store-cookie-named-other-than-session
+                  res.cookie("__session", accessToken, {
+                    maxAge: 24 * 60 * 60 * 1000,
+                    httpOnly: true
+                  });
+
                   res.send({
                     success: true,
                     user: {
@@ -130,6 +148,45 @@ module.exports = db => {
             res.send({ success: false, message: "Unable to find user data." });
           }
         });
+    }
+
+    if (action === "authenticate") {
+      const accessToken = req.cookies.__session;
+      try {
+        const { id, emailAddress } = jwt.verify(
+          accessToken,
+          privateInfo.access_token_secret
+        );
+
+        collection
+          .doc(id)
+          .get()
+          .then(doc => {
+            const {
+              firstName,
+              lastName,
+              address,
+              phoneNumber,
+              role
+            } = doc.data();
+
+            res.send({
+              success: true,
+              user: {
+                id,
+                firstName,
+                lastName,
+                ...(address ? { address } : null),
+                ...(phoneNumber ? { phoneNumber } : null),
+                emailAddress,
+                role
+              }
+            });
+          });
+      } catch (err) {
+        console.log(err.message);
+        res.send({ success: false, message: "Unable to authenticate." });
+      }
     }
   });
 
