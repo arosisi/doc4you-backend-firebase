@@ -164,36 +164,46 @@ module.exports = db => {
           .doc(id)
           .get()
           .then(doc => {
-            const {
-              firstName,
-              lastName,
-              address,
-              phoneNumber,
-              role
-            } = doc.data();
-
-            res.send({
-              success: true,
-              user: {
-                id,
+            if (doc.data()) {
+              const {
                 firstName,
                 lastName,
-                ...(address ? { address } : null),
-                ...(phoneNumber ? { phoneNumber } : null),
-                emailAddress,
+                address,
+                phoneNumber,
                 role
-              }
-            });
+              } = doc.data();
+
+              res.send({
+                success: true,
+                user: {
+                  id,
+                  firstName,
+                  lastName,
+                  ...(address ? { address } : null),
+                  ...(phoneNumber ? { phoneNumber } : null),
+                  emailAddress,
+                  role
+                }
+              });
+            } else {
+              res.send({
+                success: false,
+                message: "Unable to authenticate user."
+              });
+            }
           });
       } catch (err) {
         console.log(err.message);
-        res.send({ success: false, message: "Unable to authenticate." });
+        res.send({ success: false, message: "No or invalid access token." });
       }
     }
 
     if (action === "log out") {
       res.setHeader("Cache-Control", "private");
-      res.clearCookie("__session");
+      res.clearCookie("__session", {
+        // secure: true,
+        // sameSite: "none"
+      });
       res.send({ success: true });
     }
   });
