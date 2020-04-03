@@ -124,6 +124,8 @@ module.exports = db => {
                   res.cookie("__session", accessToken, {
                     maxAge: 24 * 60 * 60 * 1000,
                     httpOnly: true
+                    // secure: true,
+                    // sameSite: "none"
                   });
 
                   res.send({
@@ -187,6 +189,12 @@ module.exports = db => {
         console.log(err.message);
         res.send({ success: false, message: "Unable to authenticate." });
       }
+    }
+
+    if (action === "log out") {
+      res.setHeader("Cache-Control", "private");
+      res.clearCookie("__session");
+      res.send({ success: true });
     }
   });
 

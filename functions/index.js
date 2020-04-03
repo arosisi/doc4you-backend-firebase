@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const express = require("express");
+const fs = require("fs");
 const functions = require("firebase-functions");
 const path = require("path");
 
@@ -14,6 +15,8 @@ const usersRouter = require("./routes/users");
 
 const app = express();
 
+const privateInfo = JSON.parse(fs.readFileSync("./privateInfo.json"));
+
 // view engine setup
 app.set("view engine", "ejs");
 
@@ -22,7 +25,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: privateInfo.origin,
     credentials: true
   })
 );
