@@ -7,7 +7,7 @@ const _ = require("lodash");
 const router = express.Router();
 
 // Register, Log in, Verify, Authenticate, Log out
-module.exports = db => {
+module.exports = (db, env) => {
   router.post("/", (req, res) => {
     res.set("Cache-Control", "public, max-age=300, s-maxage=600");
 
@@ -120,9 +120,10 @@ module.exports = db => {
                   // https://stackoverflow.com/questions/44929653/firebase-cloud-function-wont-store-cookie-named-other-than-session
                   res.cookie("__session", accessToken, {
                     maxAge: 24 * 60 * 60 * 1000,
-                    httpOnly: true
-                    // secure: true,
-                    // sameSite: "none"
+                    httpOnly: true,
+                    ...(env === "production"
+                      ? { secure: true, sameSite: "none" }
+                      : null)
                   });
 
                   res.send({
@@ -198,8 +199,7 @@ module.exports = db => {
     if (action === "log out") {
       res.setHeader("Cache-Control", "private");
       res.clearCookie("__session", {
-        // secure: true,
-        // sameSite: "none"
+        ...(env === "productions" ? { secure: true, sameSite: "none" } : null)
       });
       res.send({ success: true });
     }
