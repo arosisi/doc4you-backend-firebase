@@ -6,7 +6,7 @@ const _ = require("lodash");
 
 const router = express.Router();
 
-// Register or Log in user
+// Register, Log in, Verify, Authenticate, Log out
 module.exports = db => {
   router.post("/", (req, res) => {
     res.set("Cache-Control", "public, max-age=300, s-maxage=600");
@@ -15,7 +15,7 @@ module.exports = db => {
 
     const privateInfo = JSON.parse(fs.readFileSync("./privateInfo.json"));
 
-    const collection = db.collection("users");
+    const users = db.collection("users");
 
     const {
       firstName,
@@ -42,11 +42,11 @@ module.exports = db => {
 
     if (action === "register") {
       const saveUser = () =>
-        collection
+        users
           .add(user)
           .then(() => sendVerificationEmail("registration", user, res));
 
-      collection
+      users
         .where("emailAddress", "==", emailAddress)
         .get()
         .then(snapshot => {
@@ -58,10 +58,7 @@ module.exports = db => {
                 message: "Email address has already been used."
               });
             } else {
-              collection
-                .doc(result.id)
-                .delete()
-                .then(saveUser);
+              users.doc(result.id).delete().then(saveUser);
             }
           } else {
             saveUser();
@@ -70,7 +67,7 @@ module.exports = db => {
     }
 
     if (action === "log in") {
-      collection
+      users
         .where("emailAddress", "==", emailAddress)
         .where("role", "==", role)
         .where("registered", "==", true)
@@ -78,7 +75,7 @@ module.exports = db => {
         .then(snapshot => {
           if (snapshot.docs.length) {
             const result = snapshot.docs[0];
-            collection
+            users
               .doc(result.id)
               .update({ verificationCode })
               .then(() => sendVerificationEmail("login", user, res));
@@ -91,7 +88,7 @@ module.exports = db => {
     if (action === "verify") {
       verificationCode = req.body.verificationCode;
 
-      collection
+      users
         .where("emailAddress", "==", emailAddress)
         .get()
         .then(snapshot => {
@@ -100,7 +97,7 @@ module.exports = db => {
             if (
               result.data().verificationCode.toString() === verificationCode
             ) {
-              collection
+              users
                 .doc(result.id)
                 .update({ registered: true })
                 .then(() => {
@@ -160,7 +157,7 @@ module.exports = db => {
           privateInfo.access_token_secret
         );
 
-        collection
+        users
           .doc(id)
           .get()
           .then(doc => {
