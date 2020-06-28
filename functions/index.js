@@ -11,6 +11,7 @@ const serviceAccount = require("./serviceAccountKey");
 
 const indexRouter = require("./routes/index");
 const testRouter = require("./routes/test");
+const availabilitiesRouter = require("./routes/availabilities");
 const usersRouter = require("./routes/users");
 
 const app = express();
@@ -40,6 +41,7 @@ const db = admin.firestore();
 
 app.use("/", indexRouter);
 app.use("/test", testRouter(db));
+app.use("/availabilities", availabilitiesRouter(db));
 app.use("/users", usersRouter(db));
 
 exports.app = functions.https.onRequest(app);

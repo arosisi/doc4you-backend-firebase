@@ -128,7 +128,7 @@ module.exports = db => {
                   res.send({
                     success: true,
                     user: {
-                      id: result.id,
+                      userId: result.id,
                       firstName,
                       lastName,
                       ...(address ? { address } : null),
@@ -173,7 +173,7 @@ module.exports = db => {
               res.send({
                 success: true,
                 user: {
-                  id,
+                  userId: id,
                   firstName,
                   lastName,
                   ...(address ? { address } : null),
